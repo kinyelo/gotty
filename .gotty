@@ -8,11 +8,11 @@
 // permit_write = false
 
 // [bool] Enable basic authentication
-// enable_basic_auth = false
+enable_basic_auth = true
 
 // [string] Default username and password of basic authentication (user:pass)
 //          To enable basic authentication, set `true` to `enable_basic_auth`
-// credential = "user:pass"
+credential = "user:pass"
 
 // [bool] Enable random URL generation
 // enable_random_url = false
@@ -25,10 +25,10 @@
 // enable_tls = false
 
 // [string] Default TLS certificate file path
-// tls_crt_file = "~/.gotty.crt"
+tls_crt_file = "~/Documents/gotty/.gotty.crt"
 
 // [string] Default TLS key file path
-// tls_key_file = "~/.gotty.key"
+tls_key_file = "~/Documents/gotty/.gotty.key"
 
 // [bool] Enable client certificate authentication
 // enable_tls_client_auth = false
