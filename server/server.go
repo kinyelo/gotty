@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
@@ -86,7 +85,7 @@ func New(factory Factory, options *Options) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load credentials")
 	}
-	println(fmt.Sprintf("Loaded %d users", len(auth2fa.creds)))
+	log.Printf("Loaded %d users", len(auth2fa.creds))
 
 	return &Server{
 		factory: factory,

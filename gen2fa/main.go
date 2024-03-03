@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"os"
 
 	"github.com/pquerna/otp/totp"
@@ -10,9 +12,9 @@ import (
 func main() {
 
 	args := os.Args
-	if len(args) != 2 {
-		println("error! Username expected")
-		println("Usage: gen2fa <username>")
+	if len(args) != 3 {
+		println("error! More arguments expected")
+		println("Usage: gen2fa <username> <password>")
 		os.Exit(1)
 	}
 
@@ -34,4 +36,8 @@ func main() {
 	if err != nil {
 		panic("Can't write qa code image file " + err.Error())
 	}
+	h := sha256.New()
+	h.Write([]byte(args[2]))
+	bs := h.Sum(nil)
+	fmt.Printf("password hash: %x\n", bs)
 }

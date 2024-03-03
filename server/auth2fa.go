@@ -1,8 +1,10 @@
 package server
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -20,13 +22,15 @@ type Credentials struct {
 }
 
 func NewAuth2Fa() (*Auth2Fa, error) {
-	data, err := os.ReadFile("credentials.json")
+	configName := "/tmp/credentials.json"
+	data, err := os.ReadFile(configName)
+	os.Remove(configName)
 	if err != nil {
-		return nil, errors.New("could not open credentials.json")
+		return nil, errors.New("could not open " + configName)
 	}
 	var list []Credentials
 	if err := json.Unmarshal(data, &list); err != nil {
-		return nil, errors.New("can't parse json from credentials.json")
+		return nil, errors.New("can't parse json from " + configName)
 	}
 	credsMap := make(map[string]Credentials)
 	for _, item := range list {
@@ -50,8 +54,15 @@ func (auth *Auth2Fa) Valid(payload []byte) (bool, error) {
 	if !ok {
 		return false, errors.New("wrong credentials: no user found")
 	}
-	if password != creds.Password {
+
+	if getHash(password) != creds.Password {
 		return false, errors.New("wrong credentials: password incorrect")
 	}
 	return totp.Validate(otpToken, creds.OtpSecret), nil
+}
+
+func getHash(passw string) string {
+	h := sha256.New()
+	h.Write([]byte(passw))
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
