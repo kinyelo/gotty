@@ -14,7 +14,10 @@ RUN CGO_ENABLED=0 make
 FROM alpine:latest
 RUN apk update && \
     apk upgrade && \
-    apk --no-cache add ca-certificates bash
-WORKDIR /root
+    apk --no-cache add ca-certificates bash openssh
+
 COPY --from=go-build /gotty/gotty /usr/bin/
+RUN addgroup -S gotty && adduser -S gotty -G gotty
+RUN chown -R root. /home/gotty
+WORKDIR /home/gotty
 CMD ["gotty",  "-w", "bash"]
