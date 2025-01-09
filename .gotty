@@ -52,7 +52,7 @@
 
 // [int] Interval time to try reconnection (seconds)
 //       To enable reconnection, set `true` to `enable_reconnect`
-// reconnect_time = 10
+reconnect_time = 30
 
 // [int] Timeout seconds for waiting a client (0 to disable)
 // timeout = 60
