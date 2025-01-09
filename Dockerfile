@@ -4,7 +4,7 @@ COPY js /gotty/js
 COPY Makefile /gotty/
 RUN make bindata/static/js/gotty.js.map
 
-FROM golang:1.20 as go-build
+FROM golang:1.22.4 as go-build
 WORKDIR /gotty
 COPY . /gotty
 COPY --from=js-build /gotty/js/node_modules /gotty/js/node_modules
@@ -19,5 +19,14 @@ RUN apk update && \
 COPY --from=go-build /gotty/gotty /usr/bin/
 RUN addgroup -S gotty && adduser -S gotty -G gotty
 RUN chown -R root. /home/gotty
+
+RUN mkdir -p /home/gotty/bin
+### The Bash shell can detect when it has been invoked using "rbash" instead of "bash." ###
+RUN ln -s /bin/bash /home/gotty/bin/rbash
+RUN ln -s /usr/bin/gotty /home/gotty/bin
+RUN ln -s /usr/bin/ssh /home/gotty/bin
+RUN chown -R gotty. /home/gotty/bin /tmp
+
+ENV PATH=/home/gotty/bin
 WORKDIR /home/gotty
-CMD ["gotty",  "-w", "bash"]
+CMD ["gotty", "-w", "rbash"]
