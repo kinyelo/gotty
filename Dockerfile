@@ -18,14 +18,14 @@ RUN apk update && \
 
 COPY --from=go-build /gotty/gotty /usr/bin/
 RUN addgroup -S gotty && adduser -S gotty -G gotty
-RUN chown -R root. /home/gotty
+RUN chown -R root:root /home/gotty
 
 RUN mkdir -p /home/gotty/bin
 ### The Bash shell can detect when it has been invoked using "rbash" instead of "bash." ###
 RUN ln -s /bin/bash /home/gotty/bin/rbash
 RUN ln -s /usr/bin/gotty /home/gotty/bin
 RUN ln -s /usr/bin/ssh /home/gotty/bin
-RUN chown -R gotty. /home/gotty/bin /tmp
+RUN chown -R gotty:gotty /home/gotty/bin /tmp
 
 ENV PATH=/home/gotty/bin
 WORKDIR /home/gotty
