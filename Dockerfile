@@ -25,7 +25,7 @@ RUN mkdir -p /home/gotty/bin
 RUN ln -s /bin/bash /home/gotty/bin/rbash
 RUN ln -s /usr/bin/gotty /home/gotty/bin
 RUN ln -s /usr/bin/ssh /home/gotty/bin
-RUN chown -R gotty:gotty /home/gotty/bin /tmp
+RUN chown -R gotty:gotty /home/gotty/bin
 
 ENV PATH=/home/gotty/bin
 WORKDIR /home/gotty

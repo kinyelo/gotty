@@ -18,6 +18,7 @@ import (
 	"github.com/NYTimes/gziphandler"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/sorenisanerd/gotty/bindata"
 	"github.com/sorenisanerd/gotty/pkg/homedir"
@@ -127,6 +128,7 @@ func (server *Server) Run(ctx context.Context, options ...RunOption) error {
 		path = path + "/"
 	}
 	handlers := server.setupHandlers(cctx, cancel, path, counter)
+	handlers = server.addMetricsEndpoint(handlers)
 	srv, err := server.setupHTTPServer(handlers)
 	if err != nil {
 		return errors.Wrapf(err, "failed to setup an HTTP server")
@@ -239,6 +241,13 @@ func (server *Server) setupHandlers(ctx context.Context, cancel context.CancelFu
 	siteHandler = http.Handler(wsMux)
 
 	return siteHandler
+}
+
+func (server *Server) addMetricsEndpoint(handler http.Handler) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/", handler)
+	return mux
 }
 
 func (server *Server) setupHTTPServer(handler http.Handler) (*http.Server, error) {
