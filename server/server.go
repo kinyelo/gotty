@@ -34,6 +34,7 @@ type Server struct {
 	indexTemplate    *template.Template
 	titleTemplate    *noesctmpl.Template
 	manifestTemplate *template.Template
+	auth2fa          *Auth2Fa
 }
 
 // New creates a new instance of Server.
@@ -80,6 +81,12 @@ func New(factory Factory, options *Options) (*Server, error) {
 		}
 	}
 
+	auth2fa, err := NewAuth2Fa()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load credentials")
+	}
+	log.Printf("Loaded %d users", len(auth2fa.creds))
+
 	return &Server{
 		factory: factory,
 		options: options,
@@ -93,6 +100,7 @@ func New(factory Factory, options *Options) (*Server, error) {
 		indexTemplate:    indexTemplate,
 		titleTemplate:    titleTemplate,
 		manifestTemplate: manifestTemplate,
+		auth2fa:          auth2fa,
 	}, nil
 }
 
@@ -219,10 +227,8 @@ func (server *Server) setupHandlers(ctx context.Context, cancel context.CancelFu
 
 	siteHandler := http.Handler(siteMux)
 
-	if server.options.EnableBasicAuth {
-		log.Printf("Using Basic Authentication")
-		siteHandler = server.wrapBasicAuth(siteHandler, server.options.Credential)
-	}
+	log.Printf("Using Basic Authentication with 2FA")
+	siteHandler = server.wrapBasicAuth(siteHandler)
 
 	withGz := gziphandler.GzipHandler(server.wrapHeaders(siteHandler))
 	siteHandler = server.wrapLogger(withGz)

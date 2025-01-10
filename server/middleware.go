@@ -23,7 +23,7 @@ func (server *Server) wrapHeaders(handler http.Handler) http.Handler {
 	})
 }
 
-func (server *Server) wrapBasicAuth(handler http.Handler, credential string) http.Handler {
+func (server *Server) wrapBasicAuth(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 
@@ -38,8 +38,11 @@ func (server *Server) wrapBasicAuth(handler http.Handler, credential string) htt
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-
-		if credential != string(payload) {
+		valid, err := server.auth2fa.Valid(payload)
+		if err != nil {
+			http.Error(w, "authorization failed "+err.Error(), http.StatusUnauthorized)
+		}
+		if !valid {
 			w.Header().Set("WWW-Authenticate", `Basic realm="GoTTY"`)
 			http.Error(w, "authorization failed", http.StatusUnauthorized)
 			return

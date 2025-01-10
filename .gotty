@@ -8,11 +8,11 @@
 // permit_write = false
 
 // [bool] Enable basic authentication
-enable_basic_auth = true
+// enable_basic_auth = false
 
 // [string] Default username and password of basic authentication (user:pass)
 //          To enable basic authentication, set `true` to `enable_basic_auth`
-credential = "user:pass"
+// credential = "user:pass"
 
 // [bool] Enable random URL generation
 // enable_random_url = false
@@ -25,10 +25,10 @@ credential = "user:pass"
 // enable_tls = false
 
 // [string] Default TLS certificate file path
-tls_crt_file = "~/Documents/gotty/.gotty.crt"
+// tls_crt_file = "~/.gotty.crt"
 
 // [string] Default TLS key file path
-tls_key_file = "~/Documents/gotty/.gotty.key"
+// tls_key_file = "~/.gotty.key"
 
 // [bool] Enable client certificate authentication
 // enable_tls_client_auth = false
@@ -52,7 +52,7 @@ tls_key_file = "~/Documents/gotty/.gotty.key"
 
 // [int] Interval time to try reconnection (seconds)
 //       To enable reconnection, set `true` to `enable_reconnect`
-// reconnect_time = 10
+reconnect_time = 30
 
 // [int] Timeout seconds for waiting a client (0 to disable)
 // timeout = 60
