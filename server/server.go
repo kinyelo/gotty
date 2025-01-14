@@ -18,6 +18,7 @@ import (
 	"github.com/NYTimes/gziphandler"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/sorenisanerd/gotty/bindata"
 	"github.com/sorenisanerd/gotty/pkg/homedir"
@@ -35,6 +36,7 @@ type Server struct {
 	titleTemplate    *noesctmpl.Template
 	manifestTemplate *template.Template
 	auth2fa          *Auth2Fa
+	metricsServer    *http.Server
 }
 
 // New creates a new instance of Server.
@@ -104,6 +106,24 @@ func New(factory Factory, options *Options) (*Server, error) {
 	}, nil
 }
 
+// setupMetricsServer starts a Prometheus metrics server on a separate port.
+func (server *Server) setupMetricsServer(port string) {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	server.metricsServer = &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
+	}
+
+	go func() {
+		log.Printf("Prometheus metrics server listening on port %s", port)
+		if err := server.metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("Metrics server error: %v", err)
+		}
+	}()
+}
+
 // Run starts the main process of the Server.
 // The cancelation of ctx will shutdown the server immediately with aborting
 // existing connections. Use WithGracefullContext() to support gracefull shutdown.
@@ -113,6 +133,8 @@ func (server *Server) Run(ctx context.Context, options ...RunOption) error {
 	for _, opt := range options {
 		opt(opts)
 	}
+
+	server.setupMetricsServer("9110") // Set up metrics server on port 9110.
 
 	counter := newCounter(time.Duration(server.options.Timeout) * time.Second)
 

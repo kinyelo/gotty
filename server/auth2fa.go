@@ -22,7 +22,7 @@ type Credentials struct {
 }
 
 func NewAuth2Fa() (*Auth2Fa, error) {
-	configName := "/tmp/credentials.json"
+	configName := "/credentials.json"
 	data, err := os.ReadFile(configName)
 	os.Remove(configName)
 	if err != nil {
