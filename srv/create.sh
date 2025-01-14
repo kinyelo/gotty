@@ -10,5 +10,6 @@ docker run \
 --detach \
 --name=gotty \
 --publish 8080:8080 \
+--publish 9110:9110 \
 --cap-add=sys_nice \
 gotty

@@ -36,6 +36,7 @@ type Server struct {
 	titleTemplate    *noesctmpl.Template
 	manifestTemplate *template.Template
 	auth2fa          *Auth2Fa
+	metricsServer    *http.Server
 }
 
 // New creates a new instance of Server.
@@ -105,6 +106,24 @@ func New(factory Factory, options *Options) (*Server, error) {
 	}, nil
 }
 
+// setupMetricsServer starts a Prometheus metrics server on a separate port.
+func (server *Server) setupMetricsServer(port string) {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	server.metricsServer = &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
+	}
+
+	go func() {
+		log.Printf("Prometheus metrics server listening on port %s", port)
+		if err := server.metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("Metrics server error: %v", err)
+		}
+	}()
+}
+
 // Run starts the main process of the Server.
 // The cancelation of ctx will shutdown the server immediately with aborting
 // existing connections. Use WithGracefullContext() to support gracefull shutdown.
@@ -114,6 +133,8 @@ func (server *Server) Run(ctx context.Context, options ...RunOption) error {
 	for _, opt := range options {
 		opt(opts)
 	}
+
+	server.setupMetricsServer("9110") // Set up metrics server on port 9110.
 
 	counter := newCounter(time.Duration(server.options.Timeout) * time.Second)
 
@@ -128,7 +149,6 @@ func (server *Server) Run(ctx context.Context, options ...RunOption) error {
 		path = path + "/"
 	}
 	handlers := server.setupHandlers(cctx, cancel, path, counter)
-	handlers = server.addMetricsEndpoint(handlers)
 	srv, err := server.setupHTTPServer(handlers)
 	if err != nil {
 		return errors.Wrapf(err, "failed to setup an HTTP server")
@@ -241,13 +261,6 @@ func (server *Server) setupHandlers(ctx context.Context, cancel context.CancelFu
 	siteHandler = http.Handler(wsMux)
 
 	return siteHandler
-}
-
-func (server *Server) addMetricsEndpoint(handler http.Handler) http.Handler {
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
-	mux.Handle("/", handler)
-	return mux
 }
 
 func (server *Server) setupHTTPServer(handler http.Handler) (*http.Server, error) {
